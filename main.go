@@ -8,7 +8,12 @@ import (
 
 func main() {
     args := parse_args()
-    fmt.Println(args)
+    switch args.action {
+        if 
+}
+
+func new_note(args Args) {
+        
 }
 
 type Args struct {
