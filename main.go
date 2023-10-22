@@ -13,7 +13,11 @@ func main() {
     case Add:
         addToCategory(args)
     case List:
-        fmt.Println("Unimplemented")
+        if args.category == "" {
+            listCategories()
+        } else {
+            listNotesInCategory(args)
+        }
     }
 }
 
@@ -59,7 +63,7 @@ func parse_args() Args {
         }
     }
     
-    if len(positional) != 2 {
+    if len(positional) < 1 {
         fmt.Println("usage: jot [-h] [-n content] ACTION CATEGORY")
         invalid("action or category is missing")
     }
@@ -76,7 +80,13 @@ func parse_args() Args {
         invalid("new, add, and remove are the only accepted actions")
     }
     
-    category := positional[1]
+    var category string
+    if len(positional) == 2 {
+        category = positional[1]
+    } else if action != List {
+        fmt.Println("usage: jot [-h] [-n content] ACTION CATEGORY")
+        invalid("action or category is missing")
+    }
 
     if action != Add && content != "" {
         invalid("only the add action can have a non empty note content")

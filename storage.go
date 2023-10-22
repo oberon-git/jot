@@ -2,7 +2,9 @@ package main
 
 import (
     "os"
+    "fmt"
     "time"
+    "strings"
     "encoding/json"
 )
 
@@ -24,7 +26,6 @@ func getCategoryPath(category string) string {
     basedir := getBaseDir()
     return basedir + "/" + category + ".json"
 }
-
 
 func createNewCategory(args Args) {
     cpath := getCategoryPath(args.category)
@@ -65,6 +66,42 @@ func addToCategory(args Args) {
     }
 
     os.WriteFile(cpath, data, 0755)
+}
+
+func listNotesInCategory(args Args) { 
+    cpath := getCategoryPath(args.category)
+    if !pathExists(cpath) {
+        invalid("category does not exist")
+    }
+
+    data, err := os.ReadFile(cpath)
+    if err != nil {
+        invalid("failed to add note")
+    }
+
+    noteCategory := new(NoteCategory)
+    err = json.Unmarshal(data, noteCategory)
+    if err != nil {
+        invalid("failed to add note")
+    }
+
+    for _, note := range noteCategory.Notes {
+        fmt.Println(note.CreatedDate.Format(time.Stamp), " - ", note.Content)
+    }
+}   
+
+func listCategories() {
+    basedir := getBaseDir()
+    entries, err := os.ReadDir(basedir)
+    if err != nil {
+        invalid("failed to list categories")
+    }
+ 
+    fmt.Println("Categories")
+    for _, e := range entries {
+        category := strings.Replace(e.Name(), ".json", "", 1)
+        fmt.Println("    ", category)
+    }
 }
 
 type NoteCategory struct {
