@@ -4,12 +4,12 @@ import (
     "fmt"
     "os"
     "flag"
+    "github.com/oberon-git/jot/storage"
 )
 
 func main() {
     args := parse_args()
-    switch args.action {
-        if 
+    storage.Hello()
 }
 
 func new_note(args Args) {
