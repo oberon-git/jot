@@ -3,44 +3,91 @@ package main
 import (
     "fmt"
     "os"
-    "flag"
-    "github.com/oberon-git/jot/storage"
 )
 
 func main() {
     args := parse_args()
-    storage.Hello()
+    switch args.action {
+    case New:
+        createNewCategory(args)
+    case Add:
+        addToCategory(args)
+    case List:
+        fmt.Println("Unimplemented")
+    }
 }
 
-func new_note(args Args) {
-        
-}
+type Action int
+const (
+    New Action = iota
+    Add
+    List
+)
 
 type Args struct {
-    action string
+    action Action
     category string
     content string
 }
 
 func parse_args() Args {
-    action := flag.String("a", "add", "action to take") 
-    category := flag.String("c", "misc", "category of the note")
-    content := flag.String("s", "", "content of note")
+    var content string
+    positional := make([]string, 0, len(os.Args))
+    for i := 1; i < len(os.Args); {
+        switch os.Args[i] {
+        case "--help", "-h":
+            fmt.Println("usage: jot [-h] [-n content] ACTION CATEGORY")
+            fmt.Println("actions: new | add | list")
+            fmt.Println("category: the category of the note")
+            os.Exit(0)
+        case "--note", "-n":
+            if i + 1 >= len(os.Args) {
+                fmt.Println("usage: jot [-h] [-n content] ACTION CATEGORY")
+                invalid("note was not provided")
+            }
 
-    flag.Parse()
-      
-    if *action != "add" && *content != "" {
-        fmt.Println("Error: only the add action can have a non empty note content")
-        os.Exit(1)
-    } else if *action == "add" && *content == "" {
+            if content != "" {
+                fmt.Println("usage: jot [-h] [-n content] ACTION CATEGORY")
+                invalid("more than one note was provided")
+            }
+
+            content = os.Args[i + 1]
+            i += 2
+        default:
+            positional = append(positional, os.Args[i])
+            i += 1
+        }
+    }
+    
+    if len(positional) != 2 {
+        fmt.Println("usage: jot [-h] [-n content] ACTION CATEGORY")
+        invalid("action or category is missing")
+    }
+    
+    var action Action
+    switch positional[0] {
+    case "new":
+        action = New
+    case "add":
+        action = Add
+    case "list":
+        action = List
+    default:
+        invalid("new, add, and remove are the only accepted actions")
+    }
+    
+    category := positional[1]
+
+    if action != Add && content != "" {
+        invalid("only the add action can have a non empty note content")
+    } else if action == Add && content == "" {
         fmt.Print("Note: ")
         fmt.Scan(content)
-        if *content == "" {
-            fmt.Println("Error: Must provide non empty note")
-            os.Exit(1)
+        if content == "" {
+            invalid("must provide non empty note")
         }
     }
 
-    return Args{action: *action, category: *category, content: *content}
+    return Args{action: action, category: category, content: content}
 }
 
